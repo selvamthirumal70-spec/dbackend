@@ -31,12 +31,12 @@ const allowedOrigins = [
   "http://localhost:3000",
   "http://localhost:8080",
   "http://localhost:5173",
+  "https://dfrontend-sigma.vercel.app",
 ];
 
 app.use(
   cors({
     origin: (origin, callback) => {
-      // Postman / server-to-server request
       if (!origin) {
         return callback(null, true);
       }
@@ -91,11 +91,8 @@ app.use(cookieParser());
 // ===============================
 
 app.use("/api/users", userRoutes);
-
 app.use("/api/orders", orderRoutes);
-
 app.use("/api/products", productRoutes);
-
 app.use("/api/upload", uploadRoutes);
 
 // ===============================
@@ -130,22 +127,10 @@ app.get("/", (req, res) => {
 });
 
 // ===============================
-// CORS TEST API
-// ===============================
-
-app.get("/api/test", (req, res) => {
-  res.status(200).json({
-    success: true,
-    message: "Frontend and Backend connected successfully",
-  });
-});
-
-// ===============================
 // ERROR MIDDLEWARE
 // ===============================
 
 app.use(notFound);
-
 app.use(errorHandler);
 
 // ===============================
