@@ -1,53 +1,108 @@
 import path from "path";
 import express from "express";
 import dotenv from "dotenv";
-dotenv.config();
 import cookieParser from "cookie-parser";
+
 import connectDB from "./config/db.js";
 import { notFound, errorHandler } from "./middleware/errorMiddleware.js";
+
 import userRoutes from "./routes/userRoutes.js";
 import productRoutes from "./routes/productRoutes.js";
 import uploadRoutes from "./routes/uploadRoutes.js";
 import orderRoutes from "./routes/orderRoutes.js";
 
+dotenv.config();
+
+const app = express();
 const port = process.env.PORT || 5000;
+
+// ===============================
+// DATABASE CONNECTION
+// ===============================
 
 connectDB();
 
-const app = express();
+// ===============================
+// BODY PARSER MIDDLEWARE
+// ===============================
 
-// body parser middleware
 app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
 
-// cookie parser middleware
-app.use(cookieParser());
-
-app.use("/api/users", userRoutes);
-app.use("/api/orders", orderRoutes);
-app.use("/api/products", productRoutes);
-app.use("/api/upload", uploadRoutes);
-
-app.get("/api/config/paypal", (req, res) =>
-  res.send({ clientId: process.env.PAYPAL_CLIENT_ID })
+app.use(
+  express.urlencoded({
+    extended: true,
+  })
 );
 
-const __dirname = path.resolve(); // set __dirname to the absolute path of the directory containing the source file
-app.use("/uploads", express.static(path.join(__dirname, "/uploads"))); // make the uploads folder static
+// ===============================
+// COOKIE PARSER
+// ===============================
 
-if (process.env.NODE_ENV === "production") {
-  app.use(express.static(path.join(__dirname, "/frontend/build")));
+app.use(cookieParser());
 
-  app.get("*", (req, res) =>
-    res.sendFile(path.resolve(__dirname, "frontend", "build", "index.html"))
-  );
-} else {
-  app.get("/", (req, res) => {
-    res.send("Api is running...");
+// ===============================
+// API ROUTES
+// ===============================
+
+app.use("/api/users", userRoutes);
+
+app.use("/api/orders", orderRoutes);
+
+app.use("/api/products", productRoutes);
+
+app.use("/api/upload", uploadRoutes);
+
+// ===============================
+// PAYPAL CONFIG
+// ===============================
+
+app.get("/api/config/paypal", (req, res) => {
+  res.send({
+    clientId: process.env.PAYPAL_CLIENT_ID,
+  });
+});
+
+// ===============================
+// UPLOAD STATIC FOLDER
+// ===============================
+
+const __dirname = path.resolve();
+
+app.use(
+  "/uploads",
+  express.static(path.join(__dirname, "uploads"))
+);
+
+// ===============================
+// TEST API
+// ===============================
+
+app.get("/", (req, res) => {
+  res.status(200).json({
+    message: "API is running successfully...",
+  });
+});
+
+// ===============================
+// ERROR MIDDLEWARE
+// ===============================
+
+app.use(notFound);
+
+app.use(errorHandler);
+
+// ===============================
+// LOCAL SERVER
+// ===============================
+
+if (process.env.NODE_ENV !== "production") {
+  app.listen(port, () => {
+    console.log(`Server is running on port ${port}`);
   });
 }
 
-app.use(notFound);
-app.use(errorHandler);
+// ===============================
+// VERCEL EXPORT
+// ===============================
 
-app.listen(port, () => console.log(`Server is running on port ${port}`));
+export default app;
