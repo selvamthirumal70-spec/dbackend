@@ -1,12 +1,16 @@
 import path from "path";
 import fs from "fs";
+import { fileURLToPath } from "url";
 import express from "express";
 import multer from "multer";
 
 const router = express.Router();
 
-// Resolve uploads directory reliably (important for Vercel / different CWD)
-const uploadsDir = path.join(process.cwd(), "uploads");
+const moduleDir = path.dirname(fileURLToPath(import.meta.url));
+// Vercel's deployment filesystem is read-only; only /tmp can accept uploads.
+export const uploadsDir = process.env.VERCEL
+  ? path.join("/tmp", "uploads")
+  : path.join(moduleDir, "..", "uploads");
 
 // Ensure uploads directory exists (prevents multer ENOENT -> 500)
 if (!fs.existsSync(uploadsDir)) {
@@ -36,4 +40,3 @@ router.post("/", upload.single("image"), (req, res) => {
 });
 
 export default router;
-

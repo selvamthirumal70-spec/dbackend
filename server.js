@@ -11,6 +11,7 @@ import userRoutes from "./routes/userRoutes.js";
 import productRoutes from "./routes/productRoutes.js";
 import uploadRoutes from "./routes/uploadRoutes.js";
 import orderRoutes from "./routes/orderRoutes.js";
+import { uploadsDir } from "./routes/uploadRoutes.js";
 
 dotenv.config();
 
@@ -21,7 +22,14 @@ const port = process.env.PORT || 5000;
 // DATABASE CONNECTION
 // ===============================
 
-connectDB();
+app.use(async (req, res, next) => {
+  try {
+    await connectDB();
+    next();
+  } catch (error) {
+    next(error);
+  }
+});
 
 // ===============================
 // CORS CONFIGURATION
@@ -32,6 +40,7 @@ const allowedOrigins = [
   "http://localhost:8080",
   "http://localhost:5173",
   "https://dfrontend-sigma.vercel.app",
+  ...(process.env.CORS_ORIGINS || "").split(",").map((origin) => origin.trim()).filter(Boolean),
 ];
 
 app.use(
@@ -109,11 +118,9 @@ app.get("/api/config/paypal", (req, res) => {
 // UPLOAD STATIC FOLDER
 // ===============================
 
-const __dirname = path.resolve();
-
 app.use(
   "/uploads",
-  express.static(path.join(__dirname, "uploads"))
+  express.static(uploadsDir)
 );
 
 // ===============================
@@ -137,7 +144,7 @@ app.use(errorHandler);
 // LOCAL SERVER
 // ===============================
 
-if (process.env.NODE_ENV !== "production") {
+if (!process.env.VERCEL) {
   app.listen(port, () => {
     console.log(`Server is running on port ${port}`);
   });
