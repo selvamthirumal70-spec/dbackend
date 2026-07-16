@@ -7,12 +7,11 @@ import multer from "multer";
 const router = express.Router();
 
 const moduleDir = path.dirname(fileURLToPath(import.meta.url));
-// Vercel's deployment filesystem is read-only; only /tmp can accept uploads.
+
 export const uploadsDir = process.env.VERCEL
   ? path.join("/tmp", "uploads")
   : path.join(moduleDir, "..", "uploads");
 
-// Ensure uploads directory exists (prevents multer ENOENT -> 500)
 if (!fs.existsSync(uploadsDir)) {
   fs.mkdirSync(uploadsDir, { recursive: true });
 }
@@ -22,7 +21,10 @@ const storage = multer.diskStorage({
     cb(null, uploadsDir);
   },
   filename(req, file, cb) {
-    cb(null, `${file.fieldname}-${Date.now()}${path.extname(file.originalname)}`);
+    cb(
+      null,
+      `${file.fieldname}-${Date.now()}${path.extname(file.originalname)}`
+    );
   },
 });
 
@@ -33,9 +35,12 @@ router.post("/", upload.single("image"), (req, res) => {
     return res.status(400).send({ message: "No image uploaded" });
   }
 
-  res.send({
+  const backendUrl =
+    process.env.BACKEND_URL || "https://dbackend-gamma.vercel.app";
+
+  res.status(200).send({
     message: "Image uploaded",
-    image: `/uploads/${req.file.filename}`,
+    image: `${backendUrl}/uploads/${req.file.filename}`,
   });
 });
 
