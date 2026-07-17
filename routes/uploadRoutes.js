@@ -38,9 +38,11 @@ router.post("/", upload.single("image"), (req, res) => {
   const backendUrl =
     process.env.BACKEND_URL || "https://dbackend-gamma.vercel.app";
 
+  // Return a relative static path so the frontend can consistently render it.
+  // Express serves files at: /uploads -> <project>/uploads
   res.status(200).send({
     message: "Image uploaded",
-    image: `${backendUrl}/uploads/${req.file.filename}`,
+    image: `/uploads/${req.file.filename}`,
   });
 });
 
