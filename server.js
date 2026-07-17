@@ -1,4 +1,3 @@
-import path from "path";
 import express from "express";
 import dotenv from "dotenv";
 import cookieParser from "cookie-parser";
@@ -11,7 +10,6 @@ import userRoutes from "./routes/userRoutes.js";
 import productRoutes from "./routes/productRoutes.js";
 import uploadRoutes from "./routes/uploadRoutes.js";
 import orderRoutes from "./routes/orderRoutes.js";
-import { uploadsDir } from "./routes/uploadRoutes.js";
 
 dotenv.config();
 
@@ -40,7 +38,10 @@ const allowedOrigins = [
   "http://localhost:8080",
   "http://localhost:5173",
   "https://dfrontend-sigma.vercel.app",
-  ...(process.env.CORS_ORIGINS || "").split(",").map((origin) => origin.trim()).filter(Boolean),
+  ...(process.env.CORS_ORIGINS || "")
+    .split(",")
+    .map((origin) => origin.trim())
+    .filter(Boolean),
 ];
 
 app.use(
@@ -54,40 +55,23 @@ app.use(
         return callback(null, true);
       }
 
-      return callback(
-        new Error(`CORS blocked origin: ${origin}`)
-      );
+      return callback(new Error(`CORS blocked origin: ${origin}`));
     },
 
     credentials: true,
 
-    methods: [
-      "GET",
-      "POST",
-      "PUT",
-      "PATCH",
-      "DELETE",
-      "OPTIONS",
-    ],
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
 
-    allowedHeaders: [
-      "Content-Type",
-      "Authorization",
-    ],
+    allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
 
 // ===============================
-// BODY PARSER MIDDLEWARE
+// BODY PARSER
 // ===============================
 
 app.use(express.json());
-
-app.use(
-  express.urlencoded({
-    extended: true,
-  })
-);
+app.use(express.urlencoded({ extended: true }));
 
 // ===============================
 // COOKIE PARSER
@@ -115,16 +99,7 @@ app.get("/api/config/paypal", (req, res) => {
 });
 
 // ===============================
-// UPLOAD STATIC FOLDER
-// ===============================
-
-app.use(
-  "/uploads",
-  express.static(uploadsDir)
-);
-
-// ===============================
-// TEST API
+// TEST ROUTE
 // ===============================
 
 app.get("/", (req, res) => {
@@ -134,7 +109,7 @@ app.get("/", (req, res) => {
 });
 
 // ===============================
-// ERROR MIDDLEWARE
+// ERROR HANDLER
 // ===============================
 
 app.use(notFound);
@@ -151,7 +126,7 @@ if (!process.env.VERCEL) {
 }
 
 // ===============================
-// VERCEL EXPORT
+// EXPORT
 // ===============================
 
 export default app;
